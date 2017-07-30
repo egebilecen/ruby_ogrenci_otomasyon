@@ -63,6 +63,7 @@ def JSONtoHash string
   end
 end
 
+# JSON parse all data of file that splited with specific string
 def parseAllData fileName,_sep="\n"
   content = readFile fileName
   if !content then return false

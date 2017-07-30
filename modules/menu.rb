@@ -1,10 +1,11 @@
 class Menu
-  # classı oluştur ve gerekli işlemleri yap
   def initialize
-    @permittedCommands = ["a","b","c","d","debug"]
+    @permittedCommands = {
+        "mainMenu"    => ["a","b","c","d","debug"], # permitted commands of main menu
+        "studentMenu" => ["a","b","c","d","e"]
+    }
   end
 
-  # izin verilen komutların olduğu diziyi döndür
   def showPermittedCommands
     return @permittedCommands
   end
@@ -25,7 +26,7 @@ class Menu
         $command = gets.chomp
       end
 
-      if !checkCommand $command, @permittedCommands
+      if !checkCommand $command, @permittedCommands["mainMenu"]
         raise Exception, "Hatalı komut!"
       else
         if $SETTINGS["debug"]
@@ -35,6 +36,8 @@ class Menu
             case $command
               when "showdb"
                 print "\n\n",$db.showDB,"\n\n"
+              when "show_current_user"
+                print "\n\n",$db.showCurrentUser,"\n\n"
               when "close"
                 system "clear"
                 $SETTINGS["debug"] = false
@@ -44,15 +47,15 @@ class Menu
           end
         else
           case $command
-            when @permittedCommands[0]
+            when @permittedCommands["mainMenu"][0]
               showStudentLoginScreen
-            when @permittedCommands[1]
+            when @permittedCommands["mainMenu"][1]
               showTeacherLoginScreen
-            when @permittedCommands[2]
+            when @permittedCommands["mainMenu"][2]
               showStudentRegisterScreen
-            when @permittedCommands[3]
+            when @permittedCommands["mainMenu"][3]
               showTeacherRegisterScreen
-            when @permittedCommands[4]
+            when @permittedCommands["mainMenu"][4]
               $SETTINGS["debug"] = true
               raise Exception, "debug"
           end
@@ -60,7 +63,7 @@ class Menu
       end
     rescue Exception => err
       print "Doğru bir komut giriniz!\n\n" if err.message != "debug"
-      print "[[HATA]]: ",err,"\n\n" if $SETTINGS["debug"] && err.message != "debug"
+      print "[[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
       retry
     end
   end
@@ -69,11 +72,20 @@ class Menu
     system "clear"
     print "== Öğrenci Giriş Sistemi ==\n"
 
+    student = {}
     print "Kullanıcı Adı: "
-    username = gets.chomp
+    student["username"] = gets.chomp
 
     print "Şifre: "
-    password = gets.chomp
+    student["password"] = gets.chomp
+
+    loginResponse = $db.studentLoginControl student
+    if loginResponse
+      $db.setCurrentUser loginResponse
+      showStudentMenu "[?]Başarıyla giriş yaptınız.\n\n"
+    else
+      showMainMenu "[!]Kullanıcı adı veya şifre yanlış!\n\n"
+    end
   end
 
   def showTeacherLoginScreen
@@ -148,5 +160,16 @@ class Menu
     else
       showMainMenu "[!]Kayıt esnasında bir hata oluştu!\n\n"
     end
+  end
+
+  def showStudentMenu text
+    system "clear"
+    print "=== Öğrenci İşlemleri ===\n",
+          "a)Dersleri Gör\n",
+          "b)Ders Notlarını Gör\n",
+          "c)Ders Ekle\n",
+          "d)Ders Sil\n",
+          "e)Ders Notu Güncelle\n\n"
+    print text if text != ""
   end
 end
