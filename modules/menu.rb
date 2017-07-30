@@ -2,7 +2,7 @@ class Menu
   def initialize
     @permittedCommands = {
         "mainMenu"    => ["a","b","c","d","debug"], # permitted commands of main menu
-        "studentMenu" => ["a","b","c","d","e"]
+        "studentMenu" => ["a","b","c","d","e","debug"]
     }
   end
 
@@ -171,5 +171,50 @@ class Menu
           "d)Ders Sil\n",
           "e)Ders Notu Güncelle\n\n"
     print text if text != ""
+
+    begin
+      if !$SETTINGS["debug"]
+        print "[Öğrenci] Komut >> "
+        $command = gets.chomp
+      end
+
+      if !checkCommand $command, @permittedCommands["studentMenu"]
+        raise Exception, "[Öğrenci] Hatalı komut!"
+      else
+        if $SETTINGS["debug"]
+          while 1
+            print "[DEBUG] Komut >> "
+            $command = gets.chomp
+            case $command
+              when "close"
+                system "clear"
+                $SETTINGS["debug"] = false
+                raise Exception, "debug"
+              else raise Exception, "[Öğrenci] Debug: Komut yok!"
+            end
+          end
+        else
+          case $command
+            when @permittedCommands["studentMenu"][0]
+              nil
+            when @permittedCommands["studentMenu"][1]
+              nil
+            when @permittedCommands["studentMenu"][2]
+              nil
+            when @permittedCommands["studentMenu"][3]
+              nil
+            when @permittedCommands["studentMenu"][4]
+              nil
+            when @permittedCommands["studentMenu"][5]
+              $SETTINGS["debug"] = true
+              raise Exception, "debug"
+          end
+        end
+      end
+    rescue Exception => err
+      print "[Öğrenci] Doğru bir komut giriniz!\n\n" if err.message != "debug"
+      print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+      retry
+    end
   end
 end

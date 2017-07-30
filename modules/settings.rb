@@ -1,4 +1,4 @@
 $SETTINGS = {
     "debug" => false,
-    "forceError" => true # forces script to display error messages without debug mode
+    "forceError" => false # forces script to display error messages without debug mode
 }
