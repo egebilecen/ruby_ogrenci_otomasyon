@@ -1,0 +1,2 @@
+{"username":"ege","password":"test","name":"Ege","surname":"Bilecen","school":"Manavgat Temel Lisesi","section":"MF"}
+{"username":"bob","password":"bob","name":"test","surname":"qwe","school":"asd","section":"qwe"}
