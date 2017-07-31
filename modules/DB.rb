@@ -37,12 +37,17 @@ class DB
     return
   end
 
-  # @return
+  # @return student obj if username,password matches, false on error
   def studentLoginControl studentObj
+    index = 0
     for student in @@STUDENT_LIST
-      return student if student["username"] == studentObj["username"] && student["password"] == studentObj["password"]
+      if student["username"] == studentObj["username"] && student["password"] == studentObj["password"]
+        student["index"] = index
+        return student
+      else
+        index += 1
+      end
     end
-
     return false
   end
 end

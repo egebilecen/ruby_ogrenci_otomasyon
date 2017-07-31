@@ -24,4 +24,26 @@ class Student
       return student
     end
   end
+
+  def self.updateStudent student
+    begin
+      writeData = ""
+      studentDatas = parseAllData DB::PATH["student"]
+      studentDatas[student["index"]] = student
+
+      for std in studentDatas
+        std.delete("index")
+        writeData += hashToJSON(std) + "\n"
+      end
+
+      if writeFile DB::PATH["student"],writeData
+        return true
+      else
+        return false
+      end
+    rescue Exception => err
+      print "[[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+      return false
+    end
+  end
 end

@@ -2,7 +2,7 @@ class Menu
   def initialize
     @permittedCommands = {
         "mainMenu"    => ["a","b","c","d","debug"], # permitted commands of main menu
-        "studentMenu" => ["a","b","c","d","e","debug"]
+        "studentMenu" => ["a","b","c","d","debug"]
     }
   end
 
@@ -167,14 +167,13 @@ class Menu
     end
   end
 
-  def showStudentMenu text
+  def showStudentMenu text=""
     system "clear"
     print "=== Öğrenci İşlemleri ===\n",
-          "a)Dersleri Gör\n",
-          "b)Ders Notlarını Gör\n",
-          "c)Ders Ekle\n",
-          "d)Ders Sil\n",
-          "e)Ders Notu Güncelle\n\n"
+          "a)Dersleri ve notları Gör\n",
+          "b)Ders Ekle\n",
+          "c)Ders Sil\n",
+          "d)Ders Notu Güncelle\n\n"
     print text if text != ""
 
     begin
@@ -200,19 +199,54 @@ class Menu
           end
         else
           case $command
-            when @permittedCommands["studentMenu"][0]
+            when @permittedCommands["studentMenu"][0] # ders ve notları gör
               system "clear"
               currentUser = $db.showCurrentUser
               print "=== Dersleriniz ===\n"
               if currentUser["lessons"].length < 1
-                print "Henüz ders eklememişsiniz.\n"
+                print "Henüz ders eklememişsiniz.\n\n"
               else
                 for lesson in currentUser["lessons"]
-                  print "Ders Adı: #{lesson["name"]}\n","Ders Notları: #{lesson["notes"]}\n\n"
+                  print "Ders Adı: #{lesson["name"]}\n","Ders Notları: #{lesson["notes"].join " - "}\n\n"
                 end
               end
-            when @permittedCommands["studentMenu"][1]
-              nil
+              print "Öğrenci menüsüne geri dönelim mi?[E/H] "
+              $command = gets.chomp
+
+              if $command == "e" then showStudentMenu
+              else print studentExitMessage end
+            when @permittedCommands["studentMenu"][1] # ders ekle
+              system "clear"
+              student = $db.showCurrentUser
+              begin
+                print "Kaç ders ekliceksiniz? "
+                lessonCount = Integer gets.chomp
+
+                for i in 0...lessonCount
+                  lesson = {}
+                  print "\nDers adı: "
+                  lesson["name"] = gets.chomp
+
+                  print "Ders Notları(virgül ile ayırınız): "
+                  lesson["notes"] = (gets.chomp).split(",")
+
+                  student["lessons"].push lesson
+                end
+                if Student::updateStudent student
+                  $db.setCurrentUser student
+                  print "Öğrenci verisi başarıyla güncellendi. Ana menüye dönmek ister misiniz? [E/H] "
+                  $command = gets.chomp
+
+                  if $command == "e" then showStudentMenu
+                  else studentExitMessage end
+                else
+                  print "Öğrenci verisi güncellenirken bir hata oluştu!\n\n"
+                end
+              rescue Exception => err
+                print "Lütfen geçerli bir şey giriniz.\n\n" if err.message != "debug"
+                print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+                retry
+              end
             when @permittedCommands["studentMenu"][2]
               nil
             when @permittedCommands["studentMenu"][3]
@@ -230,5 +264,9 @@ class Menu
       print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
       retry
     end
+  end
+
+  def studentExitMessage
+    return "\nSistemden başarıyla çıkış yaptınız.\n"
   end
 end
