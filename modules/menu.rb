@@ -36,6 +36,9 @@ class Menu
             case $command
               when "showdb"
                 print "\n\n",$db.showDB,"\n\n"
+              when "updatedb"
+                $db.updateDB
+                print "DB güncellendi!\n\n"
               when "show_current_user"
                 print "\n\n",$db.showCurrentUser,"\n\n"
               when "close"
@@ -122,6 +125,8 @@ class Menu
     print "Bölüm: "
     student["section"] = gets.chomp
 
+    student["lessons"] = []
+
     registerResponse = Student.new.createStudent student
     if registerResponse == true
       showMainMenu "[?]Başarıyla kayıt oldunuz.\n\n"
@@ -196,7 +201,16 @@ class Menu
         else
           case $command
             when @permittedCommands["studentMenu"][0]
-              nil
+              system "clear"
+              currentUser = $db.showCurrentUser
+              print "=== Dersleriniz ===\n"
+              if currentUser["lessons"].length < 1
+                print "Henüz ders eklememişsiniz.\n"
+              else
+                for lesson in currentUser["lessons"]
+                  print "Ders Adı: #{lesson["name"]}\n","Ders Notları: #{lesson["notes"]}\n\n"
+                end
+              end
             when @permittedCommands["studentMenu"][1]
               nil
             when @permittedCommands["studentMenu"][2]
