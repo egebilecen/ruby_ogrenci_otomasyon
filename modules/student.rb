@@ -25,6 +25,7 @@ class Student
     end
   end
 
+  # @return: true / false
   def self.updateStudent student, _autoUpdateDB=true
     begin
       writeData = ""

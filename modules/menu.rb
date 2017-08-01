@@ -230,10 +230,11 @@ class Menu
                 end
                 if Student::updateStudent student
                   $db.setCurrentUser student
-                  returnToMenu "Öğrenci verileri başarıyla güncellendi. Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
+                  print "Öğrenci verileri başarıyla güncellendi.\n\n"
+                  returnToMenu studentReturnMessage,method(:showStudentMenu),studentExitMessage
                 else
                   print "Öğrenci verisi güncellenirken bir hata oluştu!\n\n"
-                  returnToMenu "Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
+                  returnToMenu studentReturnMessage,method(:showStudentMenu),studentExitMessage
                 end
               rescue Exception => err
                 if err.message != "hidden"
@@ -261,10 +262,10 @@ class Menu
                   $db.showCurrentUser["lessons"].delete_at lessonID
                   if Student::updateStudent $db.showCurrentUser
                     print "Seçtiğiniz ders başarıyla silindi!\n\n"
-                    returnToMenu "Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
+                    returnToMenu studentReturnMessage,method(:showStudentMenu),studentExitMessage
                   else
                     print "Öğrenci verisi güncellenirken bir hata oluştu!\n\n"
-                    returnToMenu "Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
+                    returnToMenu studentReturnMessage,method(:showStudentMenu),studentExitMessage
                   end
                 end
               rescue Exception => err
@@ -274,8 +275,47 @@ class Menu
                 end
                 retry
               end
-            when @permittedCommands["studentMenu"][3]
-              nil
+            when @permittedCommands["studentMenu"][3] # ders notu güncelle
+              system "clear"
+              print "=== Ders Notu Güncelle ===\n"
+              index = 0
+              for lesson in $db.showCurrentUser["lessons"]
+                print "##{index} #{lesson["name"]}\n"
+                index += 1
+              end
+              begin
+                print "Düzenlenecek ders id'sini giriniz: "
+                lessonID = Integer gets.chomp
+
+                if lessonID < 0 || lessonID > index - 1
+                  print "Lütfen doğru bir ID giriniz!"
+                  raise Exception, "hidden"
+                else
+                  print "\n"
+                  modeName = "[Düzenleme Modu]"
+                  editedLesson = {}
+
+                  print modeName," Ders Adı: "
+                  editedLesson["name"] = gets.chomp
+
+                  print modeName," Ders Notları(virgül ile ayırınız): "
+                  editedLesson["notes"] = (gets.chomp).split(",")
+
+                  $db.showCurrentUser["lessons"][lessonID] = editedLesson
+                  if Student::updateStudent $db.showCurrentUser
+                    print "Seçtiğiniz ders başarıyla güncellendi!\n\n"
+                    returnToMenu studentReturnMessage, method(:showStudentMenu), studentExitMessage
+                  else
+                    print "Seçtiğiniz ders güncellenirken bir hata oluştu!\n\n"
+                  end
+                end
+              rescue Exception => err
+                if err.message != "hidden"
+                  print "Lütfen bir sayı giriniz!\n\n"
+                  print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+                end
+                retry
+              end
             when @permittedCommands["studentMenu"][4]
               $SETTINGS["debug"] = true
               raise Exception, "debug"
@@ -296,6 +336,10 @@ class Menu
     @command = gets.chomp
     if @command == "e" then functionToRun.call
     else print exitMessage end
+  end
+
+  def studentReturnMessage
+    return "Öğrenci menüsüne dönmek ister misiniz?"
   end
 
   def studentExitMessage
