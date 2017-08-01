@@ -25,11 +25,12 @@ class Student
     end
   end
 
-  def self.updateStudent student
+  def self.updateStudent student, _autoUpdateDB=true
     begin
       writeData = ""
       studentDatas = parseAllData DB::PATH["student"]
       studentDatas[student["index"]] = student
+      memoryIndex = student["index"]
 
       for std in studentDatas
         std.delete("index")
@@ -37,6 +38,11 @@ class Student
       end
 
       if writeFile DB::PATH["student"],writeData
+        if _autoUpdateDB
+          $db.updateDB
+          student["index"] = memoryIndex
+          $db.setCurrentUser student
+        end
         return true
       else
         return false

@@ -210,11 +210,7 @@ class Menu
                   print "Ders Adı: #{lesson["name"]}\n","Ders Notları: #{lesson["notes"].join " - "}\n\n"
                 end
               end
-              print "Öğrenci menüsüne geri dönelim mi?[E/H] "
-              $command = gets.chomp
-
-              if $command == "e" then showStudentMenu
-              else print studentExitMessage end
+              returnToMenu "Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
             when @permittedCommands["studentMenu"][1] # ders ekle
               system "clear"
               student = $db.showCurrentUser
@@ -234,36 +230,72 @@ class Menu
                 end
                 if Student::updateStudent student
                   $db.setCurrentUser student
-                  print "Öğrenci verisi başarıyla güncellendi. Ana menüye dönmek ister misiniz? [E/H] "
-                  $command = gets.chomp
-
-                  if $command == "e" then showStudentMenu
-                  else studentExitMessage end
+                  returnToMenu "Öğrenci verileri başarıyla güncellendi. Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
                 else
                   print "Öğrenci verisi güncellenirken bir hata oluştu!\n\n"
+                  returnToMenu "Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
                 end
               rescue Exception => err
-                print "Lütfen geçerli bir şey giriniz.\n\n" if err.message != "debug"
-                print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+                if err.message != "hidden"
+                  print "Lütfen geçerli bir şey giriniz.\n\n" if err.message != "debug"
+                  print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+                  retry
+                end
+              end
+            when @permittedCommands["studentMenu"][2] # ders sil
+              system "clear"
+              print "=== Ders Sil ===\n"
+              index = 0
+              for lesson in $db.showCurrentUser["lessons"]
+                print "##{index} #{lesson["name"]}\n"
+                index += 1
+              end
+              begin
+                print "\nSilinicek ders id'sini giriniz: "
+                lessonID = Integer gets.chomp
+
+                if lessonID > index - 1 || lessonID < 0
+                  print "Lütfen doğru bir id giriniz!\n"
+                  raise Exception,"hidden"
+                else
+                  $db.showCurrentUser["lessons"].delete_at lessonID
+                  if Student::updateStudent $db.showCurrentUser
+                    print "Seçtiğiniz ders başarıyla silindi!\n\n"
+                    returnToMenu "Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
+                  else
+                    print "Öğrenci verisi güncellenirken bir hata oluştu!\n\n"
+                    returnToMenu "Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
+                  end
+                end
+              rescue Exception => err
+                if err.message != "hidden"
+                  print "Lütfen bir sayı giriniz!\n\n"
+                  print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+                end
                 retry
               end
-            when @permittedCommands["studentMenu"][2]
-              nil
             when @permittedCommands["studentMenu"][3]
               nil
             when @permittedCommands["studentMenu"][4]
-              nil
-            when @permittedCommands["studentMenu"][5]
               $SETTINGS["debug"] = true
               raise Exception, "debug"
           end
         end
       end
     rescue Exception => err
-      print "[Öğrenci] Doğru bir komut giriniz!\n\n" if err.message != "debug"
-      print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
-      retry
+      if err.message != "hidden"
+        print "[Öğrenci] Doğru bir komut giriniz!\n\n" if err.message != "debug"
+        print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+        retry
+      end
     end
+  end
+
+  def returnToMenu displayText, functionToRun, exitMessage
+    print displayText," [E/H] "
+    @command = gets.chomp
+    if @command == "e" then functionToRun.call
+    else print exitMessage end
   end
 
   def studentExitMessage
