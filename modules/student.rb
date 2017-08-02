@@ -1,6 +1,6 @@
 class Student
   # @return: false on file method fails, true on if successfully append, return hash of student if autoSave is false
-  def createStudent student,autoSave=true
+  def self.createStudent student,autoSave=true
     if autoSave
       begin
         isTaken = false

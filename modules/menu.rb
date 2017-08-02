@@ -127,7 +127,7 @@ class Menu
 
     student["lessons"] = []
 
-    registerResponse = Student.new.createStudent student
+    registerResponse = Student::createStudent student
     if registerResponse == true
       showMainMenu "[?]Başarıyla kayıt oldunuz.\n\n"
     elsif registerResponse == 2
