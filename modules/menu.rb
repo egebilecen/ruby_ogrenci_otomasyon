@@ -157,7 +157,7 @@ class Menu
     print "Okul: "
     teacher["school"] = gets.chomp
 
-    registerResponse = Teacher.new.createTeacher teacher
+    registerResponse = Teacher::createTeacher teacher
     if registerResponse == true
       showMainMenu "[?]Başarıyla kayıt oldunuz.\n\n"
     elsif registerResponse == 2

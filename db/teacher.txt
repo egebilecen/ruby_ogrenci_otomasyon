@@ -1,2 +1,1 @@
 {"username":"zao","password":"xrypp","name":"Ahmet","surname":"Oğuz","school":"Yok"}
-{"username":"qwdas","password":"a","name":"sd","surname":"asd","school":"asd"}
