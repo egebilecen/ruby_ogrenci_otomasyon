@@ -42,7 +42,7 @@ class Student
         if _autoUpdateDB
           $db.updateDB
           student["index"] = memoryIndex
-          $db.setCurrentUser student
+          $db.currentUser = student
         end
         return true
       else

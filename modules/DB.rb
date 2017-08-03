@@ -32,7 +32,7 @@ class DB
     return @@CURRENT_USER
   end
 
-  def setCurrentUser userObj
+  def currentUser=(userObj)
     @@CURRENT_USER = userObj
     return
   end

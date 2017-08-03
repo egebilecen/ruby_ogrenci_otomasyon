@@ -84,7 +84,7 @@ class Menu
 
     loginResponse = $db.studentLoginControl student
     if loginResponse
-      $db.setCurrentUser loginResponse
+      $db.currentUser = loginResponse
       showStudentMenu "[?]Başarıyla giriş yaptınız.\n\n"
     else
       showMainMenu "[!]Kullanıcı adı veya şifre yanlış!\n\n"
@@ -229,7 +229,7 @@ class Menu
                   student["lessons"].push lesson
                 end
                 if Student::updateStudent student
-                  $db.setCurrentUser student
+                  $db.currentUser = student
                   print "Öğrenci verileri başarıyla güncellendi.\n\n"
                   returnToMenu studentReturnMessage,method(:showStudentMenu),studentExitMessage
                 else
