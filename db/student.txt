@@ -1,1 +1,1 @@
-{"username":"ege","password":"test","name":"Ege","surname":"Bilecen","school":"Mezun","section":"Yok","lessons":[{"name":"Türkçe","notes":["50","30","75"]},{"name":"Matematik","notes":["70","80","40"]}]}
+{"username":"ege","password":"test","name":"Ege","surname":"Bilecen","school":"Mezun","section":"Yok","lessons":[{"name":"Türkçe","notes":["50","30","75"]},{"name":"Matematik","notes":["10","20","30"]}]}

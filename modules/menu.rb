@@ -437,7 +437,67 @@ class Menu
               end
             when @permittedCommands["teacherMenu"][2] # not ekle/sil
               system "clear"
-              print "=== Not Ekle/Sil ===\n"
+              print "Öğrenciler: \n"
+              index = 0
+              for student in $db.showDB["student"]
+                print "##{index} #{student["name"]} #{student["surname"]}\n"
+                index += 1
+              end
+              begin
+                print "\nNotları düzeltilecek öğrencinin id'sini giriniz: "
+                studentID = Integer gets.chomp
+
+                if studentID > index - 1 || studentID < 0
+                  print "Lütfen doğru bir id giriniz!\n"
+                  raise Exception,"hidden"
+                else
+                  targetStudent = $db.showDB["student"][studentID]
+                  if targetStudent["lessons"].length < 1
+                    print "Öğrenci henüz ders eklememiş.\n\n"
+                    returnToMenu teacherReturnMessage, method(:showTeacherMenu),teacherExitMessage
+                  else
+                    system "clear"
+                    print "Dersler: \n"
+                    index = 0
+                    for lesson in targetStudent["lessons"]
+                      print "##{index} #{lesson["name"]}\n"
+                      index += 1
+                    end
+                    begin
+                      print "\nNotu düzeltilecek dersin id'sini giriniz: "
+                      lessonID = Integer gets.chomp
+
+                      if lessonID > index - 1 || lessonID < 0
+                        print "Lütfen doğru bir id giriniz!\n"
+                        raise Exception,"hidden"
+                      else
+                        print "\nDers Notları(virgül ile ayırınız): "
+                        targetStudent["lessons"][lessonID]["notes"] = (gets.chomp).split ","
+
+                        if $db.saveDB
+                          print "Notlar başarıyla düzenlendi!\n\n"
+                          returnToMenu teacherReturnMessage,method(:showTeacherMenu),teacherExitMessage
+                        else
+                          print "Notlar düzenlenirken bir hata oluştu!"
+                          returnToMenu teacherReturnMessage,method(:showTeacherMenu),teacherExitMessage
+                        end
+                      end
+                    rescue Exception => err
+                      if err.message != "hidden"
+                        print "Lütfen doğru bir id giriniz!\n\n"
+                        print "[Öğretmen] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+                      end
+                      retry
+                    end
+                  end
+                end
+              rescue Exception => err
+                if err.message != "hidden"
+                  print "Lütfen bir sayı giriniz!\n\n"
+                  print "[Öğretmen] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+                end
+                retry
+              end
             when @permittedCommands["teacherMenu"][3]
               $SETTINGS["debug"] = true
               raise Exception, "debug"
