@@ -2,7 +2,8 @@ class Menu
   def initialize
     @permittedCommands = {
         "mainMenu"    => ["a","b","c","d","debug"], # permitted commands of main menu
-        "studentMenu" => ["a","b","c","d","debug"]
+        "studentMenu" => ["a","b","c","d","debug"],
+        "teacherMenu" => ["a","b","c","debug"]
     }
   end
 
@@ -95,11 +96,20 @@ class Menu
     system "clear"
     print "== Öğretmen Giriş Sistemi ==\n"
 
+    teacher = {}
     print "Kullanıcı Adı: "
-    username = gets.chomp
+    teacher["username"] = gets.chomp
 
     print "Şifre: "
-    password = gets.chomp
+    teacher["password"] = gets.chomp
+
+    loginResponse = $db.teacherLoginControl teacher
+    if loginResponse
+      $db.currentUser = loginResponse
+      showTeacherMenu "[?]Başarıyla giriş yaptınız.\n\n"
+    else
+      showMainMenu "[!]Kullanıcı adı veya şifre yanlış!\n\n"
+    end
   end
 
   def showStudentRegisterScreen
@@ -331,6 +341,118 @@ class Menu
     end
   end
 
+  def showTeacherMenu text=""
+    system "clear"
+    print "=== Öğretmen İşlemleri ===\n",
+          "a)Öğrenci Ekle\n",
+          "b)Öğrenci Sil\n",
+          "c)Not Ekle/Sil\n\n"
+    print text if text != ""
+
+    begin
+      if !$SETTINGS["debug"]
+        print "[Öğretmen] Komut >> "
+        $command = gets.chomp
+      end
+
+      if !checkCommand $command, @permittedCommands["teacherMenu"]
+        raise Exception, "[Öğretmen] Hatalı komut!"
+      else
+        if $SETTINGS["debug"]
+          while 1
+            print "[DEBUG] Komut >> "
+            $command = gets.chomp
+            case $command
+              when "close"
+                system "clear"
+                $SETTINGS["debug"] = false
+                raise Exception, "debug"
+              else raise Exception, "[Öğretmen] Debug: Komut yok!"
+            end
+          end
+        else
+          case $command
+            when @permittedCommands["teacherMenu"][0] # öğrenci ekle
+              system "clear"
+              student = {}
+              print "Kullanıcı adı: "
+              student["username"] = gets.chomp
+
+              print "Parola: "
+              student["password"] = gets.chomp
+
+              print "Ad: "
+              student["name"] = gets.chomp
+
+              print "Soyad: "
+              student["surname"] = gets.chomp
+
+              print "Okul: "
+              student["school"] = gets.chomp
+
+              print "Bölüm: "
+              student["section"] = gets.chomp
+
+              student["lessons"] = []
+
+              registerResponse = Student::createStudent student
+              if registerResponse
+                showTeacherMenu "[?] Öğrenci başarıyla eklendi.\n"
+              elsif registerResponse == 2
+                showTeacherMenu "[!] Bu öğrencinin kullanıcı adı kullanımda.\n"
+              else
+                showTeacherMenu "[!] Öğrenci eklenirken bir hata oluştu.\n"
+              end
+              # returnToMenu "Öğrenci menüsüne dönmek ister misiniz?",method(:showStudentMenu),studentExitMessage
+            when @permittedCommands["teacherMenu"][1] # öğrenci sil
+              system "clear"
+              index = 0
+              for student in $db.showDB["student"]
+                print "##{index} #{student["name"]} #{student["surname"]}\n"
+                index += 1
+              end
+              begin
+                print "\nSilinicek öğrencinin id'sini giriniz: "
+                studentID = Integer gets.chomp
+
+                if studentID > index - 1 || studentID < 0
+                  print "Lütfen doğru bir id giriniz!\n"
+                  raise Exception,"hidden"
+                else
+                  $db.showDB["student"].delete_at studentID
+                  if $db.saveDB
+                    print "Seçtiğiniz öğrenci başarıyla silindi!\n\n"
+                    returnToMenu teacherReturnMessage,method(:showTeacherMenu),teacherExitMessage
+                  else
+                    print "Seçtiğiniz öğrenci silinirken bir hata oluştu!\n\n"
+                    returnToMenu teacherReturnMessage,method(:showTeacherMenu),teacherExitMessage
+                  end
+                end
+              rescue Exception => err
+                if err.message != "hidden"
+                  print "Lütfen bir sayı giriniz!\n\n"
+                  print "[Öğretmen] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+                end
+                retry
+              end
+            when @permittedCommands["teacherMenu"][2] # not ekle/sil
+              system "clear"
+              print "=== Not Ekle/Sil ===\n"
+            when @permittedCommands["teacherMenu"][3]
+              $SETTINGS["debug"] = true
+              raise Exception, "debug"
+          end
+        end
+      end
+    rescue Exception => err
+      if err.message != "hidden"
+        print "[Öğrenci] Doğru bir komut giriniz!\n\n" if err.message != "debug"
+        print "[Öğrenci] [[HATA]]: ",err.message,"\n",err.backtrace,"\n\n" if $SETTINGS["forceError"] || ($SETTINGS["debug"] && err.message != "debug")
+        retry
+      end
+    end
+  end
+
   def returnToMenu displayText, functionToRun, exitMessage
     print displayText," [E/H] "
     @command = gets.chomp
@@ -343,6 +465,14 @@ class Menu
   end
 
   def studentExitMessage
+    return "\nSistemden başarıyla çıkış yaptınız.\n"
+  end
+
+  def teacherReturnMessage
+    return "Öğretmen menüsüne dönmek ister misiniz?"
+  end
+
+  def teacherExitMessage
     return "\nSistemden başarıyla çıkış yaptınız.\n"
   end
 end

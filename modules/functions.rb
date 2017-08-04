@@ -21,11 +21,11 @@ def readFile fileName
 end
 
 # @return: true on successfully write, false on fail
-def writeFile fileName,dataToWrite
+def writeFile fileName, dataToWrite, _autoClose=true
   begin
     f = File.new fileName, 'w'
     f.write dataToWrite
-    f.close
+    f.close if _autoClose
     return true
   rescue
     return false
@@ -33,12 +33,12 @@ def writeFile fileName,dataToWrite
 end
 
 # @return: true on successfully write, false on fail
-def appendFile fileName,dataToWrite,_EOL=true
+def appendFile fileName,dataToWrite, _autoClose=true, _EOL=true
   begin
     f = File.new fileName, 'a'
     f.write dataToWrite
     f.write "\n" if _EOL
-    f.close
+    f.close if _autoClose
     return true
   rescue
     return false

@@ -22,6 +22,22 @@ class DB
     }
   end
 
+  # @return: true if successfully saved, false on error
+  def saveDB
+    studentWriteData = ""
+    teacherWriteData = ""
+    for student in @@STUDENT_LIST
+      studentWriteData += hashToJSON student
+      studentWriteData += "\n"
+    end
+    for teacher in @@TEACHER_LIST
+      teacherWriteData += hashToJSON teacher
+      teacherWriteData += "\n"
+    end
+    return true if writeFile PATH["student"], studentWriteData and writeFile PATH["teacher"], teacherWriteData
+    return false
+  end
+
   def updateDB
     @@STUDENT_LIST = parseAllData PATH['student']
     @@TEACHER_LIST = parseAllData PATH['teacher']
@@ -46,6 +62,18 @@ class DB
         return student
       else
         index += 1
+      end
+    end
+    return false
+  end
+
+  # @return teacher obj if username,password matches, false on error
+  def teacherLoginControl teacherObj
+    index = 0
+    for teacher in @@TEACHER_LIST
+      if teacher["username"] == teacherObj["username"] && teacher["password"] == teacherObj["password"]
+        # teacher["index"] = index
+        return teacher
       end
     end
     return false
